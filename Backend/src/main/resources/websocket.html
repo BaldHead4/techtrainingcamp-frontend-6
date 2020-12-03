@@ -1,0 +1,179 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>websocket 客户端</title>
+
+    <script type="text/javascript" src="js/jquery-3.4.1.js"></script>
+    <style>
+        span {
+            border: 1px antiquewhite;
+            padding: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="sse">
+        Username: <input type="text" id="username"/><br/>
+        <a href="javascript:WebSocketTest()">加入 WebSocket</a> <!--<a href="javascript:WebSocketWithdraw()">退出 WebSocket</a><br/><br/>-->
+
+        <!--    Message：<input type="text" id="message"/><br/>-->
+        <br/>
+        <button type="button" onclick="sendMessage()" value="Send">Send</button><br/>
+        <button type="button" onclick="gameOver()" value="gameOver">GameOver</button><br/>
+
+        <div style="border: 1px saddlebrown" id="frame">
+
+        </div>
+    </div>
+
+<script type="text/javascript" defer>
+
+    let userid = null;
+    let webServer = null;
+
+    function WebSocketTest() {
+        if ("WebSocket" in window) {
+            //alert("您的浏览器支持 WebSocket!");
+
+            // 创建一个 websocket
+            let username = document.getElementById("username").value;
+
+            let id = ("U" + Math.random()*10000000).substring(0, 6);
+            userid = id;
+
+            //let ws = new WebSocket("ws://localhost:8080/websocket/" + userid);
+            let ws = new WebSocket("ws://47.96.68.168:8080/websocket/" + userid);
+            webServer = ws;
+
+            ws.onopen = function() {
+                let msg = {
+                    "id": userid,
+                    "username": username,
+                    "difficulty": 1,
+                    "method": 0
+                }
+                console.log("onOpen: success");
+                ws.send(JSON.stringify(msg));
+            };
+
+            // 接受的信息可能有两种格式
+            // 1. 队列人数已满时的提示消息
+            // 2. 游戏进行时的游戏信息
+            //
+            ws.onmessage = function (evt) {
+                let received_msg = JSON.parse(evt.data);
+
+                let type = received_msg["type"];
+
+                let msg = null;
+
+                switch (type) {
+                    case 0://
+                        msg = "开始时对局玩家信息：" + evt.data;
+                        break;
+                    case 1://
+                        msg = received_msg["id"] + ": " + evt.data;
+                        break;
+                    case 2://
+                        msg = "系统提示： " + received_msg["message"];
+                        break;
+                    case 3://
+                        msg = "重连的对局玩家信息：" + evt.data;
+                        break;
+                    case 4://
+                        msg = "系统提示： " + received_msg["message"];
+                        break;
+                    case 5://
+                        msg = "系统提示： " + received_msg["message"];
+                        break;
+                    case 6://
+                        msg = "系统提示： " + received_msg["message"];
+                        break;
+                    case 7://
+                        msg = "系统提示： " + received_msg["message"];
+                        break;
+                    case 8:
+                        msg = "系统提示： " + received_msg["message"];
+                        break;
+                    case 9:
+                        msg = "系统提示： " + received_msg["message"];
+                        break;
+                    default:
+
+                }
+
+                $('#frame').append("<span >" + msg + "</span><br/>");
+            };
+
+            ws.onclose = function() {
+                let msg = "服务器异常关闭";
+                $('#frame').append("<span >" + msg + "</span><br/>");
+            };
+        } else {
+            // 浏览器不支持 WebSocket
+            alert("您的浏览器不支持 WebSocket!");
+        }
+    }
+
+    function gameOver() {
+        let msg = {
+            "method": 2
+        }
+        webServer.send(JSON.stringify(msg));
+
+    }
+
+    function sendMessage() {
+
+        var msg = {
+            "method": 1,
+            "id": userid,
+            "score": 1024,
+            "blocks": [
+                {
+                    "position": {
+                        "x": 1,
+                        "y": 2
+                    },
+                    "merged": false,
+                    "status": 8,
+                    "id": 1
+                },
+                {
+                    "position": {
+                        "x": 1,
+                        "y": 2
+                    },
+                    "merged": false,
+                    "status": 8,
+                    "id": 2
+                }
+            ],
+            "mergedBlocks": [
+                {
+                    "from": [0, 1]
+                }
+            ],
+            "newBlocks": [
+                {
+                    "position": {
+                        "x": 1,
+                        "y": 2
+                    },
+                    "merged": false,
+                    "status": 16,
+                    "id": 3
+                }
+            ]
+        };
+
+        webServer.send(JSON.stringify(msg));
+    }
+
+</script>
+
+
+</body>
+</html>
